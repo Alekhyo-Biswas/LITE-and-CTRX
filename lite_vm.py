@@ -11,27 +11,17 @@ class LiteVM:
     def register_command(self, name, func):
         self.commands[name] = func
 
-def cmd_use(self, args):
-    """Dynamically load a library (to be added later)."""
-    if not args:
-        print("Usage: use <library>")
-        return
-
-    libname = args[0]
-    try:
-        lib = importlib.import_module(f'libs.{libname}')
-        lib.register(self)
-        # removed: print(f"Loaded library: {libname}")
-    except ModuleNotFoundError:
-        print(f"Library not found: {libname}")
-    except Exception as e:
-        print(f"Error loading library '{libname}': {e}")
+    def cmd_use(self, args):
+        """Dynamically load a library."""
+        if not args:
+            print("Usage: use <library>")
+            return
 
         libname = args[0]
         try:
             lib = importlib.import_module(f'libs.{libname}')
             lib.register(self)
-            print(f"Loaded library: {libname}")
+            # silently load library (no print)
         except ModuleNotFoundError:
             print(f"Library not found: {libname}")
         except Exception as e:
