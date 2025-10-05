@@ -1,86 +1,34 @@
-inst_vars = {}
-temp_vars = {}
-code_vars = {}
+import importlib
 
-def get_var(name):
-    if name in inst_vars:
-        return inst_vars[name]
-    elif name in temp_vars:
-        return temp_vars[name]
-    elif name in code_vars:
-        return code_vars[name]
-    else:
-        raise NameError(f"Variable '{name}' not declared")
+class LiteVM:
+    def __init__(self):
+        self.commands = {}
+        self.vars = {}
 
-def set_var(name, value, var_type='inst'):
-    if var_type == 'inst':
-        inst_vars[name] = value
-    elif var_type == 'temp':
-        temp_vars[name] = value
-    elif var_type == 'code':
-        code_vars[name] = value
-    else:
-        raise ValueError(f"Unknown variable type '{var_type}'")
+        # only built-in command is 'use'
+        self.register_command('use', self.cmd_use)
 
-def delete_var(name):
-    if name in temp_vars:
-        del temp_vars[name]
-    else:
-        raise NameError(f"Temp variable '{name}' cannot be deleted or does not exist")
+    def register_command(self, name, func):
+        self.commands[name] = func
 
-def eval_expression(expr):
-    # Replace variable names with values
-    for var in {**inst_vars, **temp_vars, **code_vars}:
-        expr = expr.replace(var, str(get_var(var)))
-    return eval(expr)
+    def cmd_use(self, args):
+        """Dynamically load a library (to be added later)."""
+        if not args:
+            print("Usage: use <library>")
+            return
 
-def execute_line(line):
-    line = line.strip()
-    
-    # Variable declarations
-    if line.startswith('inst '):
-        var, expr = line[5:].split('=', 1)
-        var = var.strip()
-        value = eval_expression(expr.strip())
-        set_var(var, value, 'inst')
+        libname = args[0]
+        try:
+            lib = importlib.import_module(f'libs.{libname}')
+            lib.register(self)
+            print(f"Loaded library: {libname}")
+        except ModuleNotFoundError:
+            print(f"Library not found: {libname}")
+        except Exception as e:
+            print(f"Error loading library '{libname}': {e}")
 
-    elif line.startswith('temp '):
-        var, expr = line[5:].split('=', 1)
-        var = var.strip()
-        value = eval_expression(expr.strip())
-        set_var(var, value, 'temp')
-
-    elif line.startswith('code '):
-        var, expr = line[5:].split('=', 1)
-        var = var.strip()
-        value = eval_expression(expr.strip())
-        set_var(var, value, 'code')
-
-    # Delete temp variable
-    elif line.startswith('delete '):
-        var = line[7:].strip()
-        delete_var(var)
-
-    # Print statement
-    elif line.startswith('print '):
-        expr = line[6:].strip()
-        print(eval_expression(expr))
-
-    # Shorthand operators
-    else:
-        if '+=' in line:
-            var, expr = line.split('+=')
-            var = var.strip()
-            set_var(var, get_var(var) + eval_expression(expr.strip()), 'inst')
-        elif '-=' in line:
-            var, expr = line.split('-=')
-            var = var.strip()
-            set_var(var, get_var(var) - eval_expression(expr.strip()), 'inst')
-        elif line.endswith('++'):
-            var = line[:-2].strip()
-            set_var(var, get_var(var) + 1, 'inst')
-        elif line.endswith('--'):
-            var = line[:-2].strip()
-            set_var(var, get_var(var) - 1, 'inst')
+    def execute(self, cmdname, args):
+        if cmdname in self.commands:
+            self.commands[cmdname](args)
         else:
-            raise SyntaxError(f"Unknown command: {line}")
+            print(f"Unknown command: {cmdname}")
