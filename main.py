@@ -1,4 +1,4 @@
-import sys
+import sys  #this allows entering ant .ltx file
 from lite_parser import parse_line
 from lite_vm import LiteVM
 
