@@ -3,9 +3,11 @@ import importlib
 class LiteVM:
     def __init__(self):
         self.commands = {}
-        self.vars = {}
+        self.vars = {}       # code-based vars
+        self.temp_vars = {}  # temp vars
+        self.inst_vars = {}  # instance vars
 
-        # only built-in command is 'use'
+        # built-in commands
         self.register_command('use', self.cmd_use)
 
     def register_command(self, name, func):
@@ -21,7 +23,7 @@ class LiteVM:
         try:
             lib = importlib.import_module(f'libs.{libname}')
             lib.register(self)
-            # silently load library (no print)
+            # silently load library
         except ModuleNotFoundError:
             print(f"Library not found: {libname}")
         except Exception as e:
@@ -32,3 +34,6 @@ class LiteVM:
             self.commands[cmdname](args)
         else:
             print(f"Unknown command: {cmdname}")
+
+    def clear_inst_vars(self):
+        self.inst_vars = {}
