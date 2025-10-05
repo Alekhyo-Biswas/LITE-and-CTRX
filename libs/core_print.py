@@ -1,18 +1,26 @@
-def execute(vm, args):
-    if not args:
-        print("(nothing)")
-        return
+def register(vm):
+    """
+    Register the print command into the VM.
+    Usage in .ltx:  print varName  OR  print "hello"
+    """
 
-    token = args[0]
+    def cmd_print(args):
+        if not args:
+            print()
+            return
 
-    # If token starts and ends with double quotes → string literal
-    if token.startswith('"') and token.endswith('"'):
-        # strip the quotes and print the content
-        value = token[1:-1]
-        print(value)
-    else:
-        # assume it's a variable name in vm.variables
-        if token in vm.variables:
-            print(vm.variables[token])
+        token = args[0]
+
+        # If token is a string literal in quotes
+        if token.startswith('"') and token.endswith('"'):
+            # strip quotes and print
+            print(token[1:-1])
         else:
-            print(f"(undefined var: {token})")
+            # variable reference
+            if token in vm.vars:
+                print(vm.vars[token])
+            else:
+                print(f"(undefined var: {token})")
+
+    vm.register_command('print', cmd_print)
+
