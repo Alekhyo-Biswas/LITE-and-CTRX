@@ -4,6 +4,6 @@ def parse_line(line):
         return None
 
     parts = line.split()
-    cmd = parts[0]
+    cmd = parts[0]#werrererer
     args = parts[1:]
     return cmd, args
