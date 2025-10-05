@@ -1,7 +1,7 @@
 def register(vm):
     """
     Register the print command into the VM.
-    Usage in .ltx:  print varName  OR  print "hello"
+    Usage: print varName OR print "Hello world"
     """
 
     def cmd_print(args):
@@ -9,18 +9,15 @@ def register(vm):
             print()
             return
 
-        token = args[0]
-
-        # If token is a string literal in quotes
-        if token.startswith('"') and token.endswith('"'):
-            # strip quotes and print
-            print(token[1:-1])
-        else:
-            # variable reference
-            if token in vm.vars:
-                print(vm.vars[token])
+        for arg in args:
+            # if arg is a defined variable, print its value
+            if arg in vm.vars:
+                print(vm.vars[arg], end=" ")
             else:
-                print(f"(undefined var: {token})")
+                # otherwise treat as literal
+                print(arg, end=" ")
+        print()  # newline at end
 
     vm.register_command('print', cmd_print)
+
 
