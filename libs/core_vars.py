@@ -3,6 +3,8 @@ def register(vm):
         if token.startswith('"') and token.endswith('"'):
             return token[1:-1]
         try:
+            if token.lower() in ("true","false"):
+                return token.lower() == "true"
             if '.' in token:
                 return float(token)
             return int(token)
@@ -10,6 +12,7 @@ def register(vm):
             return token
 
     def cmd_var(args):
+        # var <name> = <value>
         if len(args) < 3 or args[1] != "=":
             print("Usage: var <name> = <value>")
             return
@@ -18,6 +21,7 @@ def register(vm):
         vm.vars[name] = value
 
     def cmd_temp(args):
+        # temp var <name> = <value>
         if len(args) < 4 or args[0] != "var" or args[2] != "=":
             print("Usage: temp var <name> = <value>")
             return
@@ -26,6 +30,7 @@ def register(vm):
         vm.temp_vars[name] = value
 
     def cmd_inst(args):
+        # inst var <name> = <value>
         if len(args) < 4 or args[0] != "var" or args[2] != "=":
             print("Usage: inst var <name> = <value>")
             return
@@ -43,7 +48,6 @@ def register(vm):
         else:
             print(f"Cannot delete: {name} is not a temp var")
 
-    # register commands
     vm.register_command("var", cmd_var)
     vm.register_command("temp", cmd_temp)
     vm.register_command("inst", cmd_inst)
