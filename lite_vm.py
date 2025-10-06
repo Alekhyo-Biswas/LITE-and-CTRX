@@ -3,11 +3,10 @@ import importlib
 class LiteVM:
     def __init__(self):
         self.commands = {}
-        self.vars = {}       # code-based vars
-        self.temp_vars = {}  # temp vars
-        self.inst_vars = {}  # instance vars
+        self.vars = {}        # code-based vars
+        self.temp_vars = {}   # temporary vars
+        self.inst_vars = {}   # instant vars
 
-        # built-in commands
         self.register_command('use', self.cmd_use)
 
     def register_command(self, name, func):
@@ -18,12 +17,11 @@ class LiteVM:
         if not args:
             print("Usage: use <library>")
             return
-
         libname = args[0]
         try:
             lib = importlib.import_module(f'libs.{libname}')
-            lib.register(self)
-            # silently load library
+            if hasattr(lib, 'register'):
+                lib.register(self)
         except ModuleNotFoundError:
             print(f"Library not found: {libname}")
         except Exception as e:
@@ -35,5 +33,6 @@ class LiteVM:
         else:
             print(f"Unknown command: {cmdname}")
 
-    def clear_inst_vars(self):
-        self.inst_vars = {}
+    def clear_inst(self):
+        """Call this after each command sequence to reset inst vars."""
+        self.inst_vars.clear()
