@@ -1,23 +1,20 @@
 def register(vm):
-    """
-    Register the print command into the VM.
-    Usage: print varName OR print "Hello world"
-    """
-
     def cmd_print(args):
         if not args:
             print()
             return
-
-        for arg in args:
-            # if arg is a defined variable, print its value
-            if arg in vm.vars:
-                print(vm.vars[arg], end=" ")
+        text = " ".join(args)
+        if text.startswith('"') and text.endswith('"'):
+            # literal string
+            print(text[1:-1])
+        else:
+            # variable lookup in inst -> temp -> var
+            if text in vm.inst_vars:
+                print(vm.inst_vars[text])
+            elif text in vm.temp_vars:
+                print(vm.temp_vars[text])
+            elif text in vm.vars:
+                print(vm.vars[text])
             else:
-                # otherwise treat as literal
-                print(arg, end=" ")
-        print()  # newline at end
-
+                print(f"(undefined var: {text})")
     vm.register_command('print', cmd_print)
-
-
