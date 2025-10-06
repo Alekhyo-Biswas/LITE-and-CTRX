@@ -1,41 +1,56 @@
 import shlex
 
-def parse_file(filename):
+def parse_command(line: str):
     """
-    Returns a list of command sequences.
-    Each sequence is a list of (cmd, args) tuples.
-    - Each sequence must start with an <event>
-    - Blank lines end the sequence
-    - Comments (#) are ignored
+    Split a single line into (command, args) using shlex.
+    Returns ("", []) if the line is empty or only a comment.
+    """
+    # strip off comment lines first
+    line = line.strip()
+    if not line or line.startswith("//") or line.startswith("#"):
+        return "", []  # skip comments / blank lines
+
+    try:
+        parts = shlex.split(line, posix=True)
+    except ValueError as e:
+        print(f"Parse error: {e} in line: {line}")
+        return "", []
+
+    if not parts:
+        return "", []
+
+    cmd = parts[0]
+    args = parts[1:]
+    return cmd, args
+
+
+def parse_sequences(text: str):
+    """
+    Break a whole .ltx file into command sequences.
+    Each sequence starts with an <event> line.
+    Sequences are separated by at least one blank line.
+    Returns a list of lists of (cmd, args).
     """
     sequences = []
     current_seq = []
-    sequence_started = False
 
-    with open(filename, 'r') as f:
-        for line in f:
-            stripped = line.strip()
-            if not stripped or stripped.startswith("#"):
-                continue
+    for rawline in text.splitlines():
+        line = rawline.strip()
 
-            # Detect event line
-            if stripped.startswith("<") and stripped.endswith(">"):
-                if current_seq:
-                    sequences.append(current_seq)
-                current_seq = [("event", [stripped[1:-1]])]  # store event name
-                sequence_started = True
-                continue
+        # if it's a blank line, that ends a sequence
+        if not line:
+            if current_seq:
+                sequences.append(current_seq)
+                current_seq = []
+            continue
 
-            if sequence_started:
-                parts = shlex.split(stripped)
-                cmd = parts[0]
-                args = parts[1:]
-                current_seq.append((cmd, args))
-            else:
-                continue  # ignore lines before first event
+        cmd, args = parse_command(rawline)
+        if not cmd:
+            continue  # skip comments / empty
+
+        current_seq.append((cmd, args))
 
     if current_seq:
         sequences.append(current_seq)
 
     return sequences
-
